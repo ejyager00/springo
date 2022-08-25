@@ -8,7 +8,7 @@ import java.util.List;
 * GoGame
 * 
 * 
-* @author Eric Yager
+* @author Eric Yage
 * 
 */
 public class GoGame {
