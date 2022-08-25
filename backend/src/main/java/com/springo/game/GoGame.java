@@ -4,6 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+* GoGame
+* 
+* 
+* @author Eric Yager
+* 
+*/
 public class GoGame {
 
     private int size; // the side length of the board
@@ -133,7 +140,6 @@ public class GoGame {
                     scores[1]++;
             }
         }
-        // return
         return scores;
     }
 
@@ -162,6 +168,7 @@ public class GoGame {
     public static short[][] copyBoard(short[][] board) {
         short[][] boardCopy = new short[board[0].length][board.length];
         for (int i = 0; i < board.length; i++) {
+            // copy each row to the new array
             boardCopy[i] = Arrays.copyOf(board[i], board[i].length);
         }
         return boardCopy;
@@ -274,6 +281,7 @@ public class GoGame {
     private short[][] copyBoard() {
         short[][] boardCopy = new short[this.size][this.size];
         for (int i = 0; i < this.size; i++) {
+            // copy each row to the new array
             boardCopy[i] = Arrays.copyOf(this.board[i], size);
         }
         return boardCopy;
