@@ -195,27 +195,8 @@ public class GoGame {
         // add the pieces each player has captured
         scores[0] += (double) piecesCaptured[0];
         scores[1] += (double) piecesCaptured[1];
-        // in the code block below, we copy the board and fill in any surrounded territory
-        short[][] boardCopy = copyBoard();
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                if (boardCopy[i][j] == 0) { // if there is an empty space
-                    // find all adjacent empty spaces
-                    ArrayList<int[]> block = getConnectedFriends(boardCopy, j, i, initializeFriendList(j, i));
-                    if (isSpaceEnclosed(boardCopy, block, (short) 1)) {
-                        // if black encloses the space, give the points to black
-                        for (int[] s : block) {
-                            boardCopy[s[1]][s[0]] = 1;
-                        }
-                    } else if (isSpaceEnclosed(boardCopy, block, (short) -1)) {
-                        // if white encloses the space, give the points to white
-                        for (int[] s : block) {
-                            boardCopy[s[1]][s[0]] = -1;
-                        }
-                    }
-                }
-            }
-        }
+        // copy the board and fill in any surrounded territory
+        short[][] boardCopy = fillSurroundedTerritory();
         // loop over the board and give players points for all occupied spaces
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; i++) {
@@ -247,8 +228,8 @@ public class GoGame {
     }
 
     /**
-     * A static method for converting a game to a {@code java.lang.String} for 
-     * display in ASCII text.
+     * A static method for converting a game to a {@code String} for display in 
+     * ASCII text.
      * Simply calls the {@code toString()} method of the game that is passed.
      * 
      * @param game the game to represent as a string.
@@ -457,7 +438,17 @@ public class GoGame {
         return true;
     }
 
+    /**
+     * Checks if the group of adjacent empty spaces given in {@code block} is 
+     * completely surrounded by pieces belonging to {@code player}.
+     * 
+     * @param board the board where the spaces exist.
+     * @param block the group of connected empty spaces.
+     * @param player the player potentially controlling the territory.
+     * @return boolean indicating whether the player surrounds the territory.
+     */
     private boolean isSpaceEnclosed(short[][] board, ArrayList<int[]> block, short player) {
+        // When looping over all pieces, if any adjacent spaces are occupied by the opponent, the territory is not controlled
         for (int[] f : block) {
             if (f[0] > 0 && board[f[1]][f[0] - 1] == -1*player)
                 return false;
@@ -471,6 +462,12 @@ public class GoGame {
         return true;
     }
 
+    /**
+     * Check if a board state has occurred previously in the game.
+     * 
+     * @param board the board state to search for in the history.
+     * @return boolean indicating if {@code board} is in the game history.
+     */
     private boolean inHistory(short[][] board) {
         for (short[][] b : history) {
             if (Arrays.deepEquals(b, board)) {
@@ -480,6 +477,14 @@ public class GoGame {
         return false;
     }
 
+    /**
+     * Create an {@code ArrayList} of {@code int} arrays with one member 
+     * containing {@code x} and {@code y}.
+     * 
+     * @param x the x value of the initial coordinate.
+     * @param y the y value of the initial coordinate.
+     * @return the ArrayList containing the given coordinate.
+     */
     private ArrayList<int[]> initializeFriendList(int x, int y) {
         ArrayList<int[]> friends = new ArrayList<>();
         int[] thisFriend = {x, y};
@@ -487,6 +492,15 @@ public class GoGame {
         return friends;
     }
 
+    /**
+     * Check if the piece in the coordinate at {@code x}, {@code y} is part of 
+     * a group with no liberties.
+     * 
+     * @param boardCopy the board on which to check.
+     * @param x the x value of the piece.
+     * @param y the y value of the piece.
+     * @return the new board after removing any groups with no liberties.
+     */
     private short[][] checkPieceForCapture(short[][] boardCopy, int x, int y) {
         ArrayList<int[]> friends = getConnectedFriends(boardCopy, x, y, initializeFriendList(x, y));
         if (areFriendsSurrounded(boardCopy, friends)) {
@@ -497,6 +511,36 @@ public class GoGame {
                     piecesCaptured[0]++;
                 else
                     piecesCaptured[1]++;
+            }
+        }
+        return boardCopy;
+    }
+
+    /**
+     * Create a copy of the board with all territory surrounded by a single 
+     * player filled in with that players pieces. 
+     * 
+     * @return board with controlled territory filled.
+     */
+    private short[][] fillSurroundedTerritory() {
+        short[][] boardCopy = copyBoard();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (boardCopy[i][j] == 0) { // if there is an empty space
+                    // find all adjacent empty spaces
+                    ArrayList<int[]> block = getConnectedFriends(boardCopy, j, i, initializeFriendList(j, i));
+                    if (isSpaceEnclosed(boardCopy, block, (short) 1)) {
+                        // if black encloses the space, give the points to black
+                        for (int[] s : block) {
+                            boardCopy[s[1]][s[0]] = 1;
+                        }
+                    } else if (isSpaceEnclosed(boardCopy, block, (short) -1)) {
+                        // if white encloses the space, give the points to white
+                        for (int[] s : block) {
+                            boardCopy[s[1]][s[0]] = -1;
+                        }
+                    }
+                }
             }
         }
         return boardCopy;
