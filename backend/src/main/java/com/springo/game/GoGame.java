@@ -36,7 +36,7 @@ public class GoGame {
         this.consecutivePasses = 0;
         this.piecesCaptured = new int[2];
         this.komi = 6.5; // defualt komi is 6.5
-        history.add(board); //initialize history
+        this.history.add(board); //initialize history
     }
 
     /**
@@ -53,7 +53,7 @@ public class GoGame {
         this.consecutivePasses = 0;
         this.piecesCaptured = new int[2];
         this.komi = komi;
-        history.add(board); //initialize history
+        this.history.add(board); //initialize history
     }
 
     /**
@@ -83,7 +83,7 @@ public class GoGame {
      * @return the board size.
      */
     public int getSize() {
-        return this.size;
+        return size;
     }
 
     /**
@@ -118,7 +118,7 @@ public class GoGame {
      * @return the player whose turn it is.
      */
     public short getTurn() {
-        return this.turn;
+        return turn;
     }
 
     /**
@@ -129,7 +129,7 @@ public class GoGame {
      * @return the number of consecutive turns on which a player passed.
      */
     public int getConsecutivePasses() {
-        return this.consecutivePasses;
+        return consecutivePasses;
     }
 
     /**
@@ -141,10 +141,7 @@ public class GoGame {
      * @return length-2 array of captured piece quantities.
      */
     public int[] getPiecesCaptured() {
-        int[] piecesCaptured = new int[2];
-        piecesCaptured[0] = this.piecesCaptured[0];
-        piecesCaptured[1] = this.piecesCaptured[1];
-        return piecesCaptured;
+        return Arrays.copyOf(piecesCaptured, 2);
     }
 
     /**
@@ -155,7 +152,7 @@ public class GoGame {
      * @return komi value.
      */
     public double getKomi() {
-        return this.komi;
+        return komi;
     }
 
     /**
@@ -165,7 +162,7 @@ public class GoGame {
      * @return boolean for if the game is over.
      */
     public boolean isGameOver() {
-        return this.gameOver;
+        return gameOver;
     }
 
     /**
@@ -176,8 +173,8 @@ public class GoGame {
      * @return the winner of the game.
      */
     public short getWinner() {
-        if (this.gameOver) { // if the game is over, calculate the winner from the scores
-            double[] scores = this.getScores();
+        if (gameOver) { // if the game is over, calculate the winner from the scores
+            double[] scores = getScores();
             return (short) ((scores[0] > scores[1]) ? 1 : -1);
         }
         return 0; // if the game is not over, return 0, as there is no winner yet
@@ -194,17 +191,17 @@ public class GoGame {
         // initialize array for scores
         double[] scores = new double[2];
         // add the komi points for white
-        scores[1] += this.komi;
+        scores[1] += komi;
         // add the pieces each player has captured
-        scores[0] += (double) this.piecesCaptured[0];
-        scores[1] += (double) this.piecesCaptured[1];
+        scores[0] += (double) piecesCaptured[0];
+        scores[1] += (double) piecesCaptured[1];
         // in the code block below, we copy the board and fill in any surrounded territory
         short[][] boardCopy = copyBoard();
-        for (int i = 0; i < this.size; i++) {
-            for (int j = 0; j < this.size; j++) {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
                 if (boardCopy[i][j] == 0) { // if there is an empty space
                     // find all adjacent empty spaces
-                    ArrayList<int[]> block = this.getConnectedFriends(boardCopy, j, i, initializeFriendList(j, i));
+                    ArrayList<int[]> block = getConnectedFriends(boardCopy, j, i, initializeFriendList(j, i));
                     if (isSpaceEnclosed(boardCopy, block, (short) 1)) {
                         // if black encloses the space, give the points to black
                         for (int[] s : block) {
@@ -220,8 +217,8 @@ public class GoGame {
             }
         }
         // loop over the board and give players points for all occupied spaces
-        for (int i = 0; i < this.size; i++) {
-            for (int j = 0; j < this.size; i++) {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; i++) {
                 if (boardCopy[i][j]==1)
                     scores[0]++;
                 else if (boardCopy[i][j]==-1)
@@ -234,7 +231,7 @@ public class GoGame {
     @Override
     public String toString() {
         String boardString = "";
-        for (short[] row : this.board) {
+        for (short[] row : board) {
             for (short val : row) {
                 if (val == 1) // black space
                     boardString += "\u25CF";
@@ -246,7 +243,7 @@ public class GoGame {
             boardString += "\n";
         }
         // add whose turn it is
-        return boardString + ((this.turn == 1) ? "\u25CF" : "\u25CB") + " to move.\n";
+        return boardString + ((turn == 1) ? "\u25CF" : "\u25CB") + " to move.\n";
     }
 
     /**
@@ -289,18 +286,18 @@ public class GoGame {
      * @return the winner of the game.
      */
     public short pass() {
-        if (this.gameOver) // passing is only allowed if the game is not over
-            return this.getWinner();
-        this.consecutivePasses++; // icrement the number of consecutive passes
-        if (this.consecutivePasses > 1) { // if both players pass, the game ends
-            this.gameOver = true;
+        if (gameOver) // passing is only allowed if the game is not over
+            return getWinner();
+        consecutivePasses++; // icrement the number of consecutive passes
+        if (consecutivePasses > 1) { // if both players pass, the game ends
+            gameOver = true;
             // determine winner
-            double[] scores = this.getScores();
+            double[] scores = getScores();
             if (scores[0] > scores[1])
                 return 1; // black wins
             return -1; // white wins
         }
-        this.turn *= -1; // change turn 
+        turn *= -1; // change turn 
         return 0; // no one has won yet
     }
 
@@ -314,10 +311,10 @@ public class GoGame {
      * @return the winner of the game.
      */
     public short resign() {
-        if (this.gameOver) // resignation is only allowed if the game is not over
-            return this.getWinner();
-        this.gameOver = true;
-        return this.turn *= -1; // other player wins
+        if (gameOver) // resignation is only allowed if the game is not over
+            return getWinner();
+        gameOver = true;
+        return turn *= -1; // other player wins
     }
 
     /** 
@@ -336,22 +333,22 @@ public class GoGame {
      * @throws GoGameException the attempted move is illegal.
      */
     public short makeMove(int x, int y) throws GoGameException {
-        if (this.gameOver) // moving is only allowed if the game is not over
-            return this.getWinner();
-        if (this.board[y][x] != 0) { // pieces can only be placed in empty spaces
+        if (gameOver) // moving is only allowed if the game is not over
+            return getWinner();
+        if (board[y][x] != 0) { // pieces can only be placed in empty spaces
             throw new GoGameException(String.format("There is already a piece at %d, %d.", x, y));
         }
         // make a copy of the board in case the ko rule is violated
-        short[][] boardCopy = this.copyBoard();
-        boardCopy[y][x] = this.turn;
+        short[][] boardCopy = copyBoard();
+        boardCopy[y][x] = turn;
         // check each adjacent piece to see if it is surrounded
-        if (y > 0 && boardCopy[y - 1][x] == -1 * this.turn)
+        if (y > 0 && boardCopy[y - 1][x] == -1 * turn)
             boardCopy = checkPieceForCapture(boardCopy, x, y-1);
-        if (y + 1 < size && boardCopy[y + 1][x] == -1 * this.turn) 
+        if (y + 1 < size && boardCopy[y + 1][x] == -1 * turn) 
             boardCopy = checkPieceForCapture(boardCopy, x, y+1);
-        if (x > 0 && boardCopy[y][x - 1] == -1 * this.turn)
+        if (x > 0 && boardCopy[y][x - 1] == -1 * turn)
             boardCopy = checkPieceForCapture(boardCopy, x-1, y);
-        if (x + 1 < size && boardCopy[y][x + 1] == -1 * this.turn) 
+        if (x + 1 < size && boardCopy[y][x + 1] == -1 * turn) 
             boardCopy = checkPieceForCapture(boardCopy, x+1, y);
         // check this piece to see if it is surrounded
         boardCopy = checkPieceForCapture(boardCopy, x, y);
@@ -361,10 +358,10 @@ public class GoGame {
                     "This move violates the ko rule; the resulting game state has occurred previously.");
         }
         // update the board, the turn, the history, and the consecutive passes
-        this.board = boardCopy;
-        this.turn *= -1;
-        this.history.add(boardCopy);
-        this.consecutivePasses = 0;
+        board = boardCopy;
+        turn *= -1;
+        history.add(boardCopy);
+        consecutivePasses = 0;
         return 0;
     }
 
@@ -376,10 +373,10 @@ public class GoGame {
      * @return a copy of the board
      */
     private short[][] copyBoard() {
-        short[][] boardCopy = new short[this.size][this.size];
-        for (int i = 0; i < this.size; i++) {
+        short[][] boardCopy = new short[size][size];
+        for (int i = 0; i < size; i++) {
             // copy each row to the new array
-            boardCopy[i] = Arrays.copyOf(this.board[i], size);
+            boardCopy[i] = Arrays.copyOf(board[i], size);
         }
         return boardCopy;
     }
@@ -397,22 +394,22 @@ public class GoGame {
      */
     private ArrayList<int[]> getConnectedFriends(short[][] board, int x, int y, ArrayList<int[]> friends) {
         short piece = board[y][x];
-        if (y > 0 && board[y - 1][x] == piece && !GoGame.isFriendInSet(x, y - 1, friends)) {
+        if (y > 0 && board[y - 1][x] == piece && !isFriendInSet(x, y - 1, friends)) {
             int[] friend = { x, y - 1 };
             friends.add(friend);
             friends = getConnectedFriends(board, x, y - 1, friends);
         }
-        if (y + 1 < size && board[y + 1][x] == piece && !GoGame.isFriendInSet(x, y + 1, friends)) {
+        if (y + 1 < size && board[y + 1][x] == piece && !isFriendInSet(x, y + 1, friends)) {
             int[] friend = { x, y + 1 };
             friends.add(friend);
             friends = getConnectedFriends(board, x, y + 1, friends);
         }
-        if (x > 0 && board[y][x - 1] == piece && !GoGame.isFriendInSet(x - 1, y, friends)) {
+        if (x > 0 && board[y][x - 1] == piece && !isFriendInSet(x - 1, y, friends)) {
             int[] friend = { x - 1, y };
             friends.add(friend);
             friends = getConnectedFriends(board, x, y + 1, friends);
         }
-        if (x + 1 < size && board[y][x + 1] == piece && !GoGame.isFriendInSet(x + 1, y, friends)) {
+        if (x + 1 < size && board[y][x + 1] == piece && !isFriendInSet(x + 1, y, friends)) {
             int[] friend = { x + 1, y };
             friends.add(friend);
             friends = getConnectedFriends(board, x, y + 1, friends);
@@ -420,6 +417,15 @@ public class GoGame {
         return friends;
     }
 
+    /**
+     * Checks if the given {@code x}, {@code y} coordinate is already in 
+     * {@code friends}.
+     * 
+     * @param x
+     * @param y
+     * @param friends
+     * @return 
+     */
     private static boolean isFriendInSet(int x, int y, ArrayList<int[]> friends) {
         for (int[] f : friends) {
             if (f[0] == x && f[1] == y) {
@@ -429,7 +435,15 @@ public class GoGame {
         return false;
     }
 
+    /**
+     * Checks if the chain given in {@code friends} has no liberties.
+     * 
+     * @param board the board where the chain exists.
+     * @param friends the chain of same-colored pieces.
+     * @return {@code true} if there are no liberties, otherwise {@code false}
+     */
     private boolean areFriendsSurrounded(short[][] board, ArrayList<int[]> friends) {
+        // When looping over all pieces, if any adjacent empty spaces are found, that is a liberty
         for (int[] f : friends) {
             if (f[0] > 0 && board[f[1]][f[0] - 1] == 0)
                 return false;
@@ -458,7 +472,7 @@ public class GoGame {
     }
 
     private boolean inHistory(short[][] board) {
-        for (short[][] b : this.history) {
+        for (short[][] b : history) {
             if (Arrays.deepEquals(b, board)) {
                 return true;
             }
@@ -480,9 +494,9 @@ public class GoGame {
             for (int[] f : friends) {
                 boardCopy[f[1]][f[0]] = 0;
                 if (player == 1)
-                    this.piecesCaptured[0]++;
+                    piecesCaptured[0]++;
                 else
-                    this.piecesCaptured[1]++;
+                    piecesCaptured[1]++;
             }
         }
         return boardCopy;
