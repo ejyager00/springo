@@ -24,6 +24,10 @@ public class GoGame {
 
     // CONSTRUCTORS
 
+    /**
+     * Zero argument constructor, in which board size defaults to 19 by 19, 
+     * and komi is 6.5 points.
+     */
     public GoGame() {
         this.size = 19; // default board size is 19
         this.board = new short[size][size];
@@ -35,6 +39,12 @@ public class GoGame {
         history.add(board); //initialize history
     }
 
+    /**
+     * Two argument constructor setting board size and komi.
+     * 
+     * @param size the number of spaces on each side of the board.
+     * @param komi the number of points added to white's score.
+     */
     public GoGame(int size, double komi) {
         this.size = size;
         this.board = new short[size][size];
@@ -46,6 +56,11 @@ public class GoGame {
         history.add(board); //initialize history
     }
 
+    /**
+     * The copy constructor, which copies all instance variables.
+     * 
+     * @param other the game to copy.
+     */
     public GoGame(GoGame other) {
         this.size = other.getSize();
         this.turn = other.getTurn();
@@ -62,38 +77,103 @@ public class GoGame {
 
     // PUBLIC GETTERS
 
+    /**
+     * Get the side length (in spaces) of the board.
+     * 
+     * @return the board size.
+     */
     public int getSize() {
         return this.size;
     }
 
+    /**
+     * Get the board as a 2d array. 
+     * 1 is a black piece, -1 is a white piece, and 0 is an empty space. 
+     * Returns a copy.
+     * 
+     * @return a copy of the game board.
+     */
     public short[][] getBoard() {
-        return this.board;
+        return this.copyBoard();
     }
 
+    /**
+     * Get the history of the board as a List of boards. 
+     * Creates a deep copy so that the history cannot be modified.
+     * 
+     * @return a copy of the game history.
+     */
     public List<short[][]> getHistory() {
-        return this.history;
+        ArrayList<short[][]> history = new ArrayList<>();
+        for (short[][] b : this.history) {
+            history.add(GoGame.copyBoard(b));
+        }
+        return history;
     }
 
+    /**
+     * Get the player whose turn it is. 
+     * 1 is black's turn, -1 is white's turn.
+     * 
+     * @return the player whose turn it is.
+     */
     public short getTurn() {
         return this.turn;
     }
 
+    /**
+     * Get the number of consecutive turns on which players have passed. 
+     * A value of 2 indicates that white passed, and then black passed 
+     * immediately, or vice versa.
+     * 
+     * @return the number of consecutive turns on which a player passed.
+     */
     public int getConsecutivePasses() {
         return this.consecutivePasses;
     }
 
+    /**
+     * Get the number of pieces each player has captured. 
+     * The result will always be an array of length 2. The 0 index is the 
+     * quantity of pieces captured by black, and the 1 index is the quantity of 
+     * pieces captured by white.
+     * 
+     * @return length-2 array of captured piece quantities.
+     */
     public int[] getPiecesCaptured() {
-        return this.piecesCaptured;
+        int[] piecesCaptured = new int[2];
+        piecesCaptured[0] = this.piecesCaptured[0];
+        piecesCaptured[1] = this.piecesCaptured[1];
+        return piecesCaptured;
     }
 
+    /**
+     * Get the komi value, the number of additional points for white at the end 
+     * of the game. 
+     * This makes up for the disadvantage of going second.
+     * 
+     * @return komi value.
+     */
     public double getKomi() {
         return this.komi;
     }
 
+    /**
+     * A boolean indicating whether or not this game as ended. 
+     * True if the game has ended, false otherwise.
+     * 
+     * @return boolean for if the game is over.
+     */
     public boolean isGameOver() {
         return this.gameOver;
     }
 
+    /**
+     * Get the winner of the game. 
+     * Returns zero if nobody has won; otherwise, 1 is black, and -1 is white.
+     * 
+     * @return the winner of the game.
+     */
     public short getWinner() {
         if (this.gameOver) { // if the game is over, calculate the winner from the scores
             double[] scores = this.getScores();
@@ -102,6 +182,13 @@ public class GoGame {
         return 0; // if the game is not over, return 0, as there is no winner yet
     }
 
+    /** 
+     * Get the current scores of both players, black and white. 
+     * The return value will always be a length two array. The 0 index will be 
+     * black's current score, and the 1 index will be white's.
+     * 
+     * @return length-2 array of the players' scores.
+     */
     public double[] getScores() {
         // initialize array for scores
         double[] scores = new double[2];
@@ -161,10 +248,25 @@ public class GoGame {
         return boardString + ((this.turn == 1) ? "\u25CF" : "\u25CB") + " to move.\n";
     }
 
+    /**
+     * A static method for converting a game to a String for display in ASCII 
+     * text.
+     * Simply calls the toString() method of the game that is passed.
+     * 
+     * @param game the game to represent as a string.
+     * @return a string representation of the game.
+     */
     public static String toString(GoGame game) {
         return game.toString();
     }
 
+    /**
+     * A public method for copying boards. 
+     * Creates a deep copy of a 2d game board.
+     * 
+     * @param board the board to copy.
+     * @return a copy of the supplied board.
+     */
     public static short[][] copyBoard(short[][] board) {
         short[][] boardCopy = new short[board[0].length][board.length];
         for (int i = 0; i < board.length; i++) {
@@ -176,6 +278,15 @@ public class GoGame {
 
     // FUNCTIONS FOR PLAYER ACTIONS
 
+    /**
+     * Indicates that the player whose turn it is currently would like to pass. 
+     * This changes the turn to the next player without making a move. If both 
+     * players pass, one after the other, the game will end and the score will 
+     * be tallied. This will only impact the game if the the game is not over.
+     * Returns the winner if the game is over, or 0 otherwise.
+     * 
+     * @return the winner of the game.
+     */
     public short pass() {
         if (this.gameOver) // passing is only allowed if the game is not over
             return this.getWinner();
@@ -192,6 +303,15 @@ public class GoGame {
         return 0; // no one has won yet
     }
 
+    /**
+     * Indicates that the player whose turn it is currently would like to 
+     * resign. 
+     * This immediately ends the game, and the other player wins. This will 
+     * only impact the game if the the game is not over. Returns the winner if 
+     * the game is over, or 0 otherwise.
+     * 
+     * @return the winner of the game.
+     */
     public short resign() {
         if (this.gameOver) // resignation is only allowed if the game is not over
             return this.getWinner();
