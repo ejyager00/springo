@@ -5,7 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
-* GoGame is a class containing all the logic needed to play a game of Go. 
+* {@code GoGame} is a class containing all the logic needed to play a game of 
+* Go. 
 * 
 * @author Eric Yager
 */
