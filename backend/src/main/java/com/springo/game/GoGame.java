@@ -88,8 +88,8 @@ public class GoGame {
 
     /**
      * Get the board as a 2d array. 
-     * 1 is a black piece, -1 is a white piece, and 0 is an empty space. 
-     * Returns a copy.
+     * {@code 1} is a black piece, {@code -1} is a white piece, and {@code 0} 
+     * is an empty space. Returns a copy.
      * 
      * @return a copy of the game board.
      */
@@ -113,7 +113,7 @@ public class GoGame {
 
     /**
      * Get the player whose turn it is. 
-     * 1 is black's turn, -1 is white's turn.
+     * {@code 1} is black's turn, {@code -1} is white's turn.
      * 
      * @return the player whose turn it is.
      */
@@ -134,9 +134,9 @@ public class GoGame {
 
     /**
      * Get the number of pieces each player has captured. 
-     * The result will always be an array of length 2. The 0 index is the 
-     * quantity of pieces captured by black, and the 1 index is the quantity of 
-     * pieces captured by white.
+     * The result will always be an array of length 2. The {@code 0} index is 
+     * the quantity of pieces captured by black, and the 1 index is the 
+     * quantity of pieces captured by white.
      * 
      * @return length-2 array of captured piece quantities.
      */
@@ -170,7 +170,8 @@ public class GoGame {
 
     /**
      * Get the winner of the game. 
-     * Returns zero if nobody has won; otherwise, 1 is black, and -1 is white.
+     * Returns zero if nobody has won; otherwise, {@code 1} is black, and 
+     * {@code -1} is white.
      * 
      * @return the winner of the game.
      */
@@ -184,8 +185,8 @@ public class GoGame {
 
     /** 
      * Get the current scores of both players, black and white. 
-     * The return value will always be a length two array. The 0 index will be 
-     * black's current score, and the 1 index will be white's.
+     * The return value will always be a length two array. The {@code 0} index 
+     * will be black's current score, and the {@code 1} index will be white's.
      * 
      * @return length-2 array of the players' scores.
      */
@@ -249,9 +250,9 @@ public class GoGame {
     }
 
     /**
-     * A static method for converting a game to a String for display in ASCII 
-     * text.
-     * Simply calls the toString() method of the game that is passed.
+     * A static method for converting a game to a {@code java.lang.String} for 
+     * display in ASCII text.
+     * Simply calls the {@code toString()} method of the game that is passed.
      * 
      * @param game the game to represent as a string.
      * @return a string representation of the game.
@@ -283,7 +284,7 @@ public class GoGame {
      * This changes the turn to the next player without making a move. If both 
      * players pass, one after the other, the game will end and the score will 
      * be tallied. This will only impact the game if the the game is not over.
-     * Returns the winner if the game is over, or 0 otherwise.
+     * Returns the winner if the game is over, or {@code 0} otherwise.
      * 
      * @return the winner of the game.
      */
@@ -308,7 +309,7 @@ public class GoGame {
      * resign. 
      * This immediately ends the game, and the other player wins. This will 
      * only impact the game if the the game is not over. Returns the winner if 
-     * the game is over, or 0 otherwise.
+     * the game is over, or {@code 0} otherwise.
      * 
      * @return the winner of the game.
      */
@@ -319,76 +320,47 @@ public class GoGame {
         return this.turn *= -1; // other player wins
     }
 
+    /** 
+     * Place a piece at the coordinates {@code x}, {@code y} on the game board 
+     * for the player whose turn it is.
+     * {@code x} and {@code y} are both zero indexed from the top left corner 
+     * of the board. If the attempted move is illegal, {@code makeMove} will 
+     * throw a {@code GoGameException}. Although a move can never end the game, 
+     * for consistency with {@code pass} and {@code resign}, a zero is always
+     * returned to indicate that there is no winner, unless the game is over,
+     * in which case the winner is returned.
+     * 
+     * @param x the x coordinate of the move.
+     * @param y the y coordinate of the move.
+     * @return the winner of the game.
+     * @throws GoGameException the attempted move is illegal.
+     */
     public short makeMove(int x, int y) throws GoGameException {
-        if (this.gameOver)
+        if (this.gameOver) // moving is only allowed if the game is not over
             return this.getWinner();
-        if (this.board[y][x] != 0) {
+        if (this.board[y][x] != 0) { // pieces can only be placed in empty spaces
             throw new GoGameException(String.format("There is already a piece at %d, %d.", x, y));
         }
+        // make a copy of the board in case the ko rule is violated
         short[][] boardCopy = this.copyBoard();
         boardCopy[y][x] = this.turn;
-        if (y > 0 && boardCopy[y - 1][x] == -1 * this.turn) {
-            ArrayList<int[]> friends = this.getConnectedFriends(boardCopy, x, y - 1, initializeFriendList(x, y-1));
-            if (this.areFriendsSurrounded(boardCopy, friends)) {
-                for (int[] f : friends) {
-                    boardCopy[f[1]][f[0]] = 0;
-                    if (this.turn == 1)
-                        this.piecesCaptured[0]++;
-                    else
-                        this.piecesCaptured[1]++;
-                }
-            }
-        }
-        if (y + 1 < size && boardCopy[y + 1][x] == -1 * this.turn) {
-            ArrayList<int[]> friends = this.getConnectedFriends(boardCopy, x, y + 1, initializeFriendList(x, y+1));
-            if (this.areFriendsSurrounded(boardCopy, friends)) {
-                for (int[] f : friends) {
-                    boardCopy[f[1]][f[0]] = 0;
-                    if (this.turn == 1)
-                        this.piecesCaptured[0]++;
-                    else
-                        this.piecesCaptured[1]++;
-                }
-            }
-        }
-        if (x > 0 && boardCopy[y][x - 1] == -1 * this.turn) {
-            ArrayList<int[]> friends = this.getConnectedFriends(boardCopy, x - 1, y, initializeFriendList(x-1, y));
-            if (this.areFriendsSurrounded(boardCopy, friends)) {
-                for (int[] f : friends) {
-                    boardCopy[f[1]][f[0]] = 0;
-                    if (this.turn == 1)
-                        this.piecesCaptured[0]++;
-                    else
-                        this.piecesCaptured[1]++;
-                }
-            }
-        }
-        if (x + 1 < size && boardCopy[y][x + 1] == -1 * this.turn) {
-            ArrayList<int[]> friends = this.getConnectedFriends(boardCopy, x + 1, y, initializeFriendList(x+1, y));
-            if (this.areFriendsSurrounded(boardCopy, friends)) {
-                for (int[] f : friends) {
-                    boardCopy[f[1]][f[0]] = 0;
-                    if (this.turn == 1)
-                        this.piecesCaptured[0]++;
-                    else
-                        this.piecesCaptured[1]++;
-                }
-            }
-        }
-        ArrayList<int[]> friends = getConnectedFriends(boardCopy, x, y, initializeFriendList(x, y));
-        if (areFriendsSurrounded(boardCopy, friends)) {
-            for (int[] f : friends) {
-                boardCopy[f[1]][f[0]] = 0;
-                if (this.turn == 1)
-                    this.piecesCaptured[1]++;
-                else
-                    this.piecesCaptured[0]++;
-            }
-        }
+        // check each adjacent piece to see if it is surrounded
+        if (y > 0 && boardCopy[y - 1][x] == -1 * this.turn)
+            boardCopy = checkPieceForCapture(boardCopy, x, y-1);
+        if (y + 1 < size && boardCopy[y + 1][x] == -1 * this.turn) 
+            boardCopy = checkPieceForCapture(boardCopy, x, y+1);
+        if (x > 0 && boardCopy[y][x - 1] == -1 * this.turn)
+            boardCopy = checkPieceForCapture(boardCopy, x-1, y);
+        if (x + 1 < size && boardCopy[y][x + 1] == -1 * this.turn) 
+            boardCopy = checkPieceForCapture(boardCopy, x+1, y);
+        // check this piece to see if it is surrounded
+        boardCopy = checkPieceForCapture(boardCopy, x, y);
+        // if this exact board has appeared previously, the move is illegal
         if (inHistory(boardCopy)) {
             throw new GoGameException(
                     "This move violates the ko rule; the resulting game state has occurred previously.");
         }
+        // update the board, the turn, the history, and the consecutive passes
         this.board = boardCopy;
         this.turn *= -1;
         this.history.add(boardCopy);
@@ -398,6 +370,11 @@ public class GoGame {
 
     // PRIVATE HELPER FUNCTIONS
 
+    /**
+     * Deep copies the current board of this game.
+     * 
+     * @return a copy of the board
+     */
     private short[][] copyBoard() {
         short[][] boardCopy = new short[this.size][this.size];
         for (int i = 0; i < this.size; i++) {
@@ -407,6 +384,17 @@ public class GoGame {
         return boardCopy;
     }
 
+    /**
+     * Given a piece at {@code board} location {@code x}, {@code y}, returns an 
+     * {@code ArrayList} of pieces of the same color that form a chain.
+     * The list returned will include all pieces in {@code friends}.
+     * 
+     * @param board the board on wich to check for chains.
+     * @param x the starting x coordinate.
+     * @param y the starting y coordinate.
+     * @param friends already known members of the chain.
+     * @return members of a chain of same-colored pieces.
+     */
     private ArrayList<int[]> getConnectedFriends(short[][] board, int x, int y, ArrayList<int[]> friends) {
         short piece = board[y][x];
         if (y > 0 && board[y - 1][x] == piece && !GoGame.isFriendInSet(x, y - 1, friends)) {
@@ -483,6 +471,21 @@ public class GoGame {
         int[] thisFriend = {x, y};
         friends.add(thisFriend);
         return friends;
+    }
+
+    private short[][] checkPieceForCapture(short[][] boardCopy, int x, int y) {
+        ArrayList<int[]> friends = getConnectedFriends(boardCopy, x, y, initializeFriendList(x, y));
+        if (areFriendsSurrounded(boardCopy, friends)) {
+            short player = boardCopy[y][x];
+            for (int[] f : friends) {
+                boardCopy[f[1]][f[0]] = 0;
+                if (player == 1)
+                    this.piecesCaptured[0]++;
+                else
+                    this.piecesCaptured[1]++;
+            }
+        }
+        return boardCopy;
     }
 
 }
